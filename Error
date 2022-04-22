@@ -1,0 +1,140 @@
+#include <iostream>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+using namespace std;
+
+	void frames(GLFWwindow* Home, int left, int top)
+	{
+		glViewport(0, 0, left, top);
+	}
+
+	class draw {
+
+	public:
+
+
+
+	};
+int width=750;
+int height=675;
+
+const char* VShaderS = "#version 330 core\n"
+"layout (location = 0) in vec3 aPos;\n"
+"void main()\n"
+"{\n"
+"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"}\0";
+const char* FShaderS = "#version 330 core\n"
+"out vec4 FragColor;\n"
+"void main()\n"
+"{\n"
+"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+"}\n\0";
+
+
+int main() {
+	glfwInit();
+
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+	
+
+
+	GLFWwindow* Home = glfwCreateWindow(width, height, "Take 3", NULL, NULL);
+
+	if (Home == NULL) {
+
+	cout << "EHEHEHE DUB AN EXPECTED ERROR HAS JUST OCURRED HAHAHAHAHA\N";
+		glfwTerminate();
+		return -1;
+	}
+
+	glfwMakeContextCurrent(Home);
+	glfwSetFramebufferSizeCallback(Home, frames);
+
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "EHEHEHE DUB EVEN GLAD DOESNT WANT YOU" << std::endl;
+		return -1;
+	}
+
+	unsigned int VShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(VShader, 1, &VShaderS, NULL);
+	glCompileShader(VShader);
+
+	unsigned int FShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(FShader, 1, &FShaderS, NULL);
+	glCompileShader(FShader);
+
+	int yes;
+	char infoLog[512];
+	glGetShaderiv(VShader, GL_COMPILE_STATUS, &yes);
+	if (!yes) {
+		glGetShaderInfoLog(VShader, 512, NULL, infoLog);
+		cout << "EHEHEHE DUB THE SHADERS YOU WROTE DONT EVEN WORK\n"<<infoLog<<endl;
+
+	}
+
+	unsigned int joinshaders = glCreateProgram();
+	glAttachShader(joinshaders, VShader);
+	glAttachShader(joinshaders, FShader);
+	glLinkProgram(joinshaders);
+
+	glGetProgramiv(joinshaders, GL_LINK_STATUS, &yes);
+	if (!yes) {
+		glGetProgramInfoLog(joinshaders, 512, NULL, infoLog);
+		std::cout << "EHEHEHE DUB THE SHADERS YOU WROTE DONT EVEN COME TOGETHER\n" << infoLog << std::endl;
+	}
+
+	glDeleteShader(VShader);
+	glDeleteShader(FShader);
+
+	float trivert[] = {
+-0.5f, -0.5f, 0.0f,
+0.5f, -0.5f, 0.0f, 
+ 0.0f,  0.5f, 0.0f  
+	};
+
+	unsigned int VBO, VAO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(trivert),trivert, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
+	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+	glBindVertexArray(0);
+
+	glUseProgram(joinshaders);
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	while (!glfwWindowShouldClose(Home)) {
+
+		glClearColor(0.03f,0.02f,0.12f,1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glfwSwapBuffers(Home);
+		glfwPollEvents();
+	}
+
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteVertexArrays(1, &VBO);
+	glDeleteProgram(joinshaders);
+	
+	glfwTerminate();
+	return 0;
+}
